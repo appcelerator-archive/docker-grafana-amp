@@ -102,7 +102,7 @@
                 "hide": false,
                 "measurement": "docker_container_mem",
                 "policy": "default",
-                "query": "SELECT mean(\"usage_percent\")*10 as usage FROM \"docker_container_mem\" WHERE   \"container_name\" =~ /$ContainerName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/  and   $timeFilter GROUP BY time($interval), \"container_name\", \"datacenter\", \"host\"",
+                "query": "SELECT mean(\"usage_percent\") as usage FROM \"docker_container_mem\" WHERE   \"container_name\" =~ /$ContainerName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/  and   $timeFilter GROUP BY time($interval), \"container_name\", \"datacenter\", \"host\"",
                 "rawQuery": true,
                 "refId": "A",
                 "resultFormat": "time_series",
