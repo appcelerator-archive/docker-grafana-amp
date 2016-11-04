@@ -1,9 +1,7 @@
 {
-  "Dashboard":
-  {
+  "Dashboard": {
     "id": null,
     "title": "AMP Swarm Health Realtime",
-    "originalTitle": "AMP Swarm Health Realtime",
     "tags": [],
     "style": "dark",
     "timezone": "browser",
@@ -61,7 +59,7 @@
             "steppedLine": false,
             "targets": [
               {
-                "alias": "$tag_container_name",
+                "alias": "[[tag_com.docker.swarm.service.name]]",
                 "dsType": "influxdb",
                 "fields": [
                   {
@@ -94,7 +92,7 @@
                   {
                     "key": "container_name",
                     "params": [
-                      "container_name"
+                      "/^$ServiceName$/"
                     ],
                     "type": "tag"
                   }
@@ -102,7 +100,7 @@
                 "hide": false,
                 "measurement": "docker_container_mem",
                 "policy": "default",
-                "query": "SELECT mean(\"usage_percent\") as usage FROM \"docker_container_mem\" WHERE   \"container_name\" =~ /$ContainerName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/  and   $timeFilter GROUP BY time($interval), \"container_name\", \"datacenter\", \"host\"",
+                "query": "SELECT mean(\"usage_percent\") as usage FROM \"docker_container_mem\" WHERE \"com.docker.swarm.service.name\" =~ /$ServiceName/  and \"datacenter\" =~ /$DataCenter/ and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"datacenter\", \"host\", \"com.docker.swarm.service.name\"",
                 "rawQuery": true,
                 "refId": "A",
                 "resultFormat": "time_series",
@@ -121,15 +119,55 @@
                   ]
                 ],
                 "tags": []
+              },
+              {
+                "policy": "default",
+                "dsType": "influxdb",
+                "resultFormat": "time_series",
+                "tags": [],
+                "groupBy": [
+                  {
+                    "type": "time",
+                    "params": [
+                      "$interval"
+                    ]
+                  },
+                  {
+                    "type": "tag",
+                    "params": [
+                      "engine_host"
+                    ]
+                  }
+                ],
+                "select": [
+                  [
+                    {
+                      "type": "field",
+                      "params": [
+                        "usage_percent"
+                      ]
+                    },
+                    {
+                      "type": "sum",
+                      "params": []
+                    }
+                  ]
+                ],
+                "refId": "B",
+                "measurement": "docker_container_mem",
+                "alias": "total_[[tag_engine_host]]",
+                "query": "SELECT sum(\"usage_percent\") FROM \"docker_container_mem\" WHERE \"datacenter\" =~ /$DataCenter/ and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"engine_host\"",
+                "rawQuery": true
               }
             ],
             "timeFrom": null,
             "timeShift": null,
             "title": "AMP Memory Utilization",
             "tooltip": {
-              "msResolution": false,
+              "msResolution": true,
               "shared": true,
-              "value_type": "cumulative"
+              "value_type": "cumulative",
+              "sort": 0
             },
             "type": "graph",
             "xaxis": {
@@ -138,11 +176,11 @@
             "yaxes": [
               {
                 "format": "short",
+                "label": "Percentage",
                 "logBase": 1,
                 "max": null,
                 "min": null,
-                "show": true,
-                "label": "Percentage"
+                "show": true
               },
               {
                 "format": "short",
@@ -190,7 +228,7 @@
             "steppedLine": false,
             "targets": [
               {
-                "alias": "$tag_container_name",
+                "alias": "[[tag_com.docker.swarm.service.name]]",
                 "dsType": "influxdb",
                 "fields": [
                   {
@@ -223,7 +261,7 @@
                   {
                     "key": "container_name",
                     "params": [
-                      "container_name"
+                      "com.docker.swarm.service.name"
                     ],
                     "type": "tag"
                   }
@@ -231,34 +269,80 @@
                 "hide": false,
                 "measurement": "docker_container_cpu",
                 "policy": "default",
-                "query": "SELECT mean(\"usage_percent\") FROM \"docker_container_cpu\" WHERE  cpu = 'cpu-total' and  \"container_name\" =~ /$ContainerName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"datacenter\", \"host\", \"container_name\"",
+                "query": "SELECT max(\"usage_percent\") FROM \"docker_container_cpu\" WHERE \"com.docker.swarm.service.name\" =~ /$ServiceName/  and \"datacenter\" =~ /$DataCenter/ and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"datacenter\", \"host\", \"com.docker.swarm.service.name\"",
                 "rawQuery": true,
                 "refId": "A",
                 "resultFormat": "time_series",
                 "select": [
                   [
                     {
+                      "type": "field",
                       "params": [
                         "usage_percent"
-                      ],
-                      "type": "field"
+                      ]
                     },
                     {
-                      "params": [],
-                      "type": "mean"
+                      "type": "max",
+                      "params": []
                     }
                   ]
                 ],
                 "tags": []
+              },
+              {
+                "policy": "default",
+                "dsType": "influxdb",
+                "resultFormat": "time_series",
+                "tags": [],
+                "groupBy": [
+                  {
+                    "type": "time",
+                    "params": [
+                      "$interval"
+                    ]
+                  },
+                  {
+                    "type": "tag",
+                    "params": [
+                      "engine_host"
+                    ]
+                  },
+                  {
+                    "type": "fill",
+                    "params": [
+                      "null"
+                    ]
+                  }
+                ],
+                "select": [
+                  [
+                    {
+                      "type": "field",
+                      "params": [
+                        "usage_percent"
+                      ]
+                    },
+                    {
+                      "type": "sum",
+                      "params": []
+                    }
+                  ]
+                ],
+                "refId": "B",
+                "measurement": "docker_container_cpu",
+                "alias": "total_[[tag_engine_host]]",
+                "query": "SELECT sum(\"usage_percent\") FROM \"docker_container_cpu\" WHERE  \"datacenter\" =~ /$DataCenter/ and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"engine_host\" fill(null)",
+                "rawQuery": true
               }
             ],
             "timeFrom": null,
             "timeShift": null,
             "title": "AMP CPU Utilization",
             "tooltip": {
-              "msResolution": false,
+              "msResolution": true,
               "shared": true,
-              "value_type": "cumulative"
+              "value_type": "cumulative",
+              "sort": 0
             },
             "type": "graph",
             "xaxis": {
@@ -267,11 +351,11 @@
             "yaxes": [
               {
                 "format": "short",
+                "label": "Percentage",
                 "logBase": 1,
                 "max": null,
                 "min": null,
-                "show": true,
-                "label": "Percentage"
+                "show": true
               },
               {
                 "format": "short",
@@ -319,7 +403,7 @@
             "steppedLine": false,
             "targets": [
               {
-                "alias": "$tag_container_name",
+                "alias": "[[tag_com.docker.swarm.service.name]]",
                 "dsType": "influxdb",
                 "fields": [
                   {
@@ -360,136 +444,7 @@
                 "hide": false,
                 "measurement": "docker_container_blkio",
                 "policy": "default",
-                "query": "SELECT non_negative_derivative(last(\"io_service_bytes_recursive_total\"))/1000 FROM \"docker_container_blkio\" WHERE  \"container_name\" =~ /$ContainerName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"datacenter\", \"host\", \"container_name\"",
-                "rawQuery": true,
-                "refId": "A",
-                "resultFormat": "time_series",
-                "select": [
-                  [
-                    {
-                      "params": [
-                        "usage_percent"
-                      ],
-                      "type": "field"
-                    },
-                    {
-                      "params": [],
-                      "type": "mean"
-                    }
-                  ]
-                ],
-                "tags": []
-              }
-            ],
-            "timeFrom": null,
-            "timeShift": null,
-            "title": "AMP Block I/O Utilization",
-            "tooltip": {
-              "msResolution": false,
-              "shared": true,
-              "value_type": "cumulative"
-            },
-            "type": "graph",
-            "xaxis": {
-              "show": true
-            },
-            "yaxes": [
-              {
-                "format": "short",
-                "logBase": 1,
-                "max": null,
-                "min": null,
-                "show": true,
-                "label": "Mega Bytes"
-              },
-              {
-                "format": "short",
-                "logBase": 1,
-                "max": null,
-                "min": null,
-                "show": true
-              }
-            ]
-          },
-          {
-            "aliasColors": {},
-            "bars": false,
-            "datasource": null,
-            "editable": true,
-            "error": false,
-            "fill": 1,
-            "grid": {
-              "threshold1": null,
-              "threshold1Color": "rgba(216, 200, 27, 0.27)",
-              "threshold2": null,
-              "threshold2Color": "rgba(234, 112, 112, 0.22)"
-            },
-            "id": 7,
-            "legend": {
-              "avg": false,
-              "current": false,
-              "max": false,
-              "min": false,
-              "show": true,
-              "total": false,
-              "values": false
-            },
-            "lines": true,
-            "linewidth": 2,
-            "links": [],
-            "nullPointMode": "connected",
-            "percentage": false,
-            "pointradius": 5,
-            "points": false,
-            "renderer": "flot",
-            "seriesOverrides": [],
-            "span": 12,
-            "stack": false,
-            "steppedLine": false,
-            "targets": [
-              {
-                "alias": "$tag_container_name:rx_bytes",
-                "dsType": "influxdb",
-                "fields": [
-                  {
-                    "func": "mean",
-                    "name": "usage_percent"
-                  }
-                ],
-                "groupBy": [
-                  {
-                    "interval": "auto",
-                    "params": [
-                      "auto"
-                    ],
-                    "type": "time"
-                  },
-                  {
-                    "key": "datacenter",
-                    "params": [
-                      "datacenter"
-                    ],
-                    "type": "tag"
-                  },
-                  {
-                    "key": "host",
-                    "params": [
-                      "host"
-                    ],
-                    "type": "tag"
-                  },
-                  {
-                    "key": "container_name",
-                    "params": [
-                      "container_name"
-                    ],
-                    "type": "tag"
-                  }
-                ],
-                "hide": false,
-                "measurement": "docker_container_net",
-                "policy": "default",
-                "query": "SELECT non_negative_derivative(last(\"rx_bytes\"))/1000 FROM \"docker_container_net\" WHERE \"container_name\" =~ /$ContainerName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"datacenter\", \"host\", \"container_name\"",
+                "query": "SELECT non_negative_derivative(last(\"io_service_bytes_recursive_total\"))/1000 FROM \"docker_container_blkio\" WHERE  \"com.docker.swarm.service.name\" =~ /$ServiceName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"datacenter\", \"host\", \"com.docker.swarm.service.name\"",
                 "rawQuery": true,
                 "refId": "A",
                 "resultFormat": "time_series",
@@ -543,18 +498,19 @@
                   ]
                 ],
                 "refId": "B",
-                "query": "SELECT non_negative_derivative(last(\"tx_bytes\"))/1000 FROM \"docker_container_net\" WHERE \"container_name\" =~ /$ContainerName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and  $timeFilter GROUP BY time($interval), \"datacenter\", \"host\", \"container_name\"",
+                "query": "SELECT non_negative_derivative(last(\"io_service_bytes_recursive_total\"))/1000 FROM \"docker_container_blkio\" WHERE  \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"datacenter\", \"engine_host\"",
                 "rawQuery": true,
-                "alias": "$tag_container_name:tx_bytes"
+                "alias": "total_[[tag_engine_host]]"
               }
             ],
             "timeFrom": null,
             "timeShift": null,
-            "title": "AMP Network Utilization",
+            "title": "AMP Block I/O Utilization",
             "tooltip": {
               "msResolution": false,
               "shared": true,
-              "value_type": "cumulative"
+              "value_type": "cumulative",
+              "sort": 0
             },
             "type": "graph",
             "xaxis": {
@@ -563,11 +519,179 @@
             "yaxes": [
               {
                 "format": "short",
+                "label": "Mega Bytes",
                 "logBase": 1,
                 "max": null,
                 "min": null,
-                "show": true,
-                "label": "Mega Bytes"
+                "show": true
+              },
+              {
+                "format": "short",
+                "logBase": 1,
+                "max": null,
+                "min": null,
+                "show": true
+              }
+            ]
+          },
+          {
+            "aliasColors": {},
+            "bars": false,
+            "datasource": null,
+            "editable": true,
+            "error": false,
+            "fill": 1,
+            "grid": {
+              "threshold1": null,
+              "threshold1Color": "rgba(216, 200, 27, 0.27)",
+              "threshold2": null,
+              "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            },
+            "id": 7,
+            "legend": {
+              "avg": false,
+              "current": false,
+              "max": false,
+              "min": false,
+              "show": true,
+              "total": false,
+              "values": false
+            },
+            "lines": true,
+            "linewidth": 2,
+            "links": [],
+            "nullPointMode": "connected",
+            "percentage": false,
+            "pointradius": 5,
+            "points": false,
+            "renderer": "flot",
+            "seriesOverrides": [],
+            "span": 12,
+            "stack": false,
+            "steppedLine": false,
+            "targets": [
+              {
+                "alias": "[[tag_com.docker.swarm.service.name]]:rx_bytes",
+                "dsType": "influxdb",
+                "fields": [
+                  {
+                    "func": "mean",
+                    "name": "usage_percent"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "interval": "auto",
+                    "params": [
+                      "auto"
+                    ],
+                    "type": "time"
+                  },
+                  {
+                    "key": "datacenter",
+                    "params": [
+                      "datacenter"
+                    ],
+                    "type": "tag"
+                  },
+                  {
+                    "key": "host",
+                    "params": [
+                      "host"
+                    ],
+                    "type": "tag"
+                  },
+                  {
+                    "key": "container_name",
+                    "params": [
+                      "container_name"
+                    ],
+                    "type": "tag"
+                  }
+                ],
+                "hide": false,
+                "measurement": "docker_container_net",
+                "policy": "default",
+                "query": "SELECT non_negative_derivative(last(\"rx_bytes\"))/1000 FROM \"docker_container_net\" WHERE \"com.docker.swarm.service.name\" =~ /$ServiceName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"datacenter\", \"engine_host\", \"com.docker.swarm.service.name\"",
+                "rawQuery": true,
+                "refId": "A",
+                "resultFormat": "time_series",
+                "select": [
+                  [
+                    {
+                      "params": [
+                        "usage_percent"
+                      ],
+                      "type": "field"
+                    },
+                    {
+                      "params": [],
+                      "type": "mean"
+                    }
+                  ]
+                ],
+                "tags": []
+              },
+              {
+                "alias": "[[tag_com.docker.swarm.service.name]]:tx_bytes",
+                "dsType": "influxdb",
+                "groupBy": [
+                  {
+                    "params": [
+                      "$interval"
+                    ],
+                    "type": "time"
+                  },
+                  {
+                    "params": [
+                      "null"
+                    ],
+                    "type": "fill"
+                  }
+                ],
+                "policy": "default",
+                "query": "SELECT non_negative_derivative(last(\"tx_bytes\"))/1000 FROM \"docker_container_net\" WHERE \"com.docker.swarm.service.name\" =~ /$ServiceName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and  $timeFilter GROUP BY time($interval), \"datacenter\", \"engine_host\", \"com.docker.swarm.service.name\"",
+                "rawQuery": true,
+                "refId": "B",
+                "resultFormat": "time_series",
+                "select": [
+                  [
+                    {
+                      "params": [
+                        "value"
+                      ],
+                      "type": "field"
+                    },
+                    {
+                      "params": [],
+                      "type": "mean"
+                    }
+                  ]
+                ],
+                "tags": []
+              }
+            ],
+            "timeFrom": null,
+            "timeShift": null,
+            "title": "AMP Network Utilization",
+            "tooltip": {
+              "msResolution": false,
+              "shared": true,
+              "value_type": "cumulative",
+              "sort": 0
+            },
+            "type": "graph",
+            "xaxis": {
+              "show": true
+            },
+            "yaxes": [
+              {
+                "format": "short",
+                "label": "Mega Bytes",
+                "logBase": 1,
+                "max": null,
+                "min": null,
+                "show": true
               },
               {
                 "format": "short",
@@ -620,12 +744,11 @@
     "templating": {
       "list": [
         {
+          "type": "query",
           "datasource": null,
+          "refresh": 1,
+          "name": "ServiceName",
           "hide": 0,
-          "includeAll": true,
-          "label": "ContainerName",
-          "multi": true,
-          "name": "ContainerName",
           "options": [
             {
               "text": "All",
@@ -633,18 +756,43 @@
               "selected": true
             },
             {
-              "text": "chronograf",
-              "value": "chronograf",
+              "text": "amp-agent",
+              "value": "amp-agent",
               "selected": false
             },
             {
-              "text": "consul",
-              "value": "consul",
+              "text": "amp-log-worker",
+              "value": "amp-log-worker",
               "selected": false
             },
             {
-              "text": "grafana_1",
-              "value": "grafana_1",
+              "text": "amp-ui",
+              "value": "amp-ui",
+              "selected": false
+            },
+            {
+              "text": "amplifier",
+              "value": "amplifier",
+              "selected": false
+            },
+            {
+              "text": "elasticsearch",
+              "value": "elasticsearch",
+              "selected": false
+            },
+            {
+              "text": "etcd",
+              "value": "etcd",
+              "selected": false
+            },
+            {
+              "text": "grafana",
+              "value": "grafana",
+              "selected": false
+            },
+            {
+              "text": "haproxy",
+              "value": "haproxy",
               "selected": false
             },
             {
@@ -658,35 +806,44 @@
               "selected": false
             },
             {
-              "text": "registrator",
-              "value": "registrator",
+              "text": "nats",
+              "value": "nats",
               "selected": false
             },
             {
-              "text": "telegraf",
-              "value": "telegraf",
+              "text": "registry",
+              "value": "registry",
+              "selected": false
+            },
+            {
+              "text": "telegraf-agent",
+              "value": "telegraf-agent",
+              "selected": false
+            },
+            {
+              "text": "telegraf-haproxy",
+              "value": "telegraf-haproxy",
               "selected": false
             }
           ],
-          "query": "SHOW TAG VALUES FROM \"docker_container_mem\" WITH KEY = \"container_name\"",
-          "refresh": 1,
-          "regex": "/([^/]*$)/",
-          "type": "query",
+          "includeAll": true,
+          "multi": true,
+          "query": "SHOW TAG VALUES FROM \"docker_container_mem\" WITH KEY = \"com.docker.swarm.service.name\"",
           "current": {
             "text": "All",
             "value": [
               "$__all"
             ],
             "tags": []
-          }
+          },
+          "regex": "",
+          "label": "ServiceName"
         },
         {
           "current": {
-            "tags": [],
-            "text": "dev",
-            "value": [
-              "dev"
-            ]
+            "text": "All",
+            "value": "$__all",
+            "selected": false
           },
           "datasource": null,
           "hide": 0,
@@ -698,12 +855,12 @@
             {
               "text": "All",
               "value": "$__all",
-              "selected": false
+              "selected": true
             },
             {
-              "text": "dev",
-              "value": "dev",
-              "selected": true
+              "text": "dc1",
+              "value": "dc1",
+              "selected": false
             }
           ],
           "query": "SHOW TAG VALUES FROM \"docker_container_mem\" WITH KEY = \"datacenter\"",
@@ -713,11 +870,10 @@
         },
         {
           "current": {
-            "tags": [],
-            "text": "All",
             "value": [
               "$__all"
-            ]
+            ],
+            "text": "All"
           },
           "datasource": null,
           "hide": 0,
@@ -732,8 +888,8 @@
               "selected": true
             },
             {
-              "text": "db55189e9940",
-              "value": "db55189e9940",
+              "text": "f0181ec14413",
+              "value": "f0181ec14413",
               "selected": false
             }
           ],
@@ -748,7 +904,8 @@
       "list": []
     },
     "schemaVersion": 12,
-    "version": 5,
-    "links": []
+    "version": 2,
+    "links": [],
+    "gnetId": null
   }
 }

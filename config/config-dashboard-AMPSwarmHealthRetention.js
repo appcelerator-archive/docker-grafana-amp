@@ -1,9 +1,7 @@
 {
-  "Dashboard":
-  {
+  "Dashboard": {
     "id": null,
     "title": "AMP Swarm Health Historical",
-    "originalTitle": "AMP Swarm Health Historical",
     "tags": [],
     "style": "dark",
     "timezone": "browser",
@@ -39,16 +37,16 @@
             },
             "id": 1,
             "legend": {
+              "alignAsTable": false,
               "avg": false,
               "current": false,
               "max": false,
               "min": false,
-              "show": true,
-              "total": false,
-              "values": false,
               "rightSide": false,
+              "show": true,
               "sideWidth": 200,
-              "alignAsTable": false
+              "total": false,
+              "values": false
             },
             "lines": true,
             "linewidth": 2,
@@ -64,7 +62,7 @@
             "steppedLine": false,
             "targets": [
               {
-                "alias": "$tag_container_name",
+                "alias": "[[tag_com.docker.swarm.service.name]]",
                 "dsType": "influxdb",
                 "fields": [
                   {
@@ -105,7 +103,7 @@
                 "hide": false,
                 "measurement": "docker_container_mem",
                 "policy": "default",
-                "query": "SELECT mean(mean_usage_percent)  as usage FROM $Retention.\"downsampled_docker_container_mem\" WHERE   \"container_name\" =~ /$ContainerName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/  and   $timeFilter GROUP BY time($interval), \"container_name\", \"datacenter\", \"host\"",
+                "query": "SELECT mean(mean_usage_percent)  as usage FROM $Retention.\"downsampled_docker_container_mem\" WHERE   \"com.docker.swarm.service.name\" =~ /$ServiceName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/  and   $timeFilter GROUP BY time($interval), \"com.docker.swarm.service.name\", \"datacenter\", \"host\"",
                 "rawQuery": true,
                 "refId": "A",
                 "resultFormat": "time_series",
@@ -124,6 +122,44 @@
                   ]
                 ],
                 "tags": []
+              },
+              {
+                "alias": "[[tag_engine_host]]",
+                "dsType": "influxdb",
+                "groupBy": [
+                  {
+                    "params": [
+                      "$interval"
+                    ],
+                    "type": "time"
+                  },
+                  {
+                    "params": [
+                      "null"
+                    ],
+                    "type": "fill"
+                  }
+                ],
+                "policy": "default",
+                "query": "SELECT sum(mean_usage_percent)  as usage FROM $Retention.\"downsampled_docker_container_mem\" WHERE  \"host\" =~ /$HostName/  and   $timeFilter GROUP BY time($interval), \"datacenter\", \"engine_host\"",
+                "rawQuery": true,
+                "refId": "B",
+                "resultFormat": "time_series",
+                "select": [
+                  [
+                    {
+                      "params": [
+                        "value"
+                      ],
+                      "type": "field"
+                    },
+                    {
+                      "params": [],
+                      "type": "mean"
+                    }
+                  ]
+                ],
+                "tags": []
               }
             ],
             "timeFrom": null,
@@ -132,6 +168,7 @@
             "tooltip": {
               "msResolution": false,
               "shared": true,
+              "sort": 0,
               "value_type": "cumulative"
             },
             "type": "graph",
@@ -193,7 +230,7 @@
             "steppedLine": false,
             "targets": [
               {
-                "alias": "$tag_container_name",
+                "alias": "[[tag_com.docker.swarm.service.name]]",
                 "dsType": "influxdb",
                 "fields": [
                   {
@@ -234,7 +271,7 @@
                 "hide": false,
                 "measurement": "docker_container_cpu",
                 "policy": "default",
-                "query": "SELECT mean(\"mean_usage_percent\") FROM $Retention.\"downsampled_docker_container_cpu\" WHERE  cpu = 'cpu-total' and  \"container_name\" =~ /$ContainerName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"datacenter\", \"host\", \"container_name\"",
+                "query": "SELECT mean(\"mean_usage_percent\") FROM $Retention.\"downsampled_docker_container_cpu\" WHERE  cpu = 'cpu-total' and  \"com.docker.swarm.service.name\" =~ /$ServiceName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"datacenter\", \"host\", \"com.docker.swarm.service.name\"",
                 "rawQuery": true,
                 "refId": "A",
                 "resultFormat": "time_series",
@@ -253,6 +290,44 @@
                   ]
                 ],
                 "tags": []
+              },
+              {
+                "policy": "default",
+                "dsType": "influxdb",
+                "resultFormat": "time_series",
+                "tags": [],
+                "groupBy": [
+                  {
+                    "type": "time",
+                    "params": [
+                      "$interval"
+                    ]
+                  },
+                  {
+                    "type": "fill",
+                    "params": [
+                      "null"
+                    ]
+                  }
+                ],
+                "select": [
+                  [
+                    {
+                      "type": "field",
+                      "params": [
+                        "value"
+                      ]
+                    },
+                    {
+                      "type": "mean",
+                      "params": []
+                    }
+                  ]
+                ],
+                "refId": "B",
+                "query": "SELECT sum(\"mean_usage_percent\") FROM $Retention.\"downsampled_docker_container_cpu\" WHERE  cpu = 'cpu-total' and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"datacenter\", \"engine_host\"",
+                "rawQuery": true,
+                "alias": "total_[[tag_engine_host]]"
               }
             ],
             "timeFrom": null,
@@ -261,6 +336,7 @@
             "tooltip": {
               "msResolution": false,
               "shared": true,
+              "sort": 0,
               "value_type": "cumulative"
             },
             "type": "graph",
@@ -322,7 +398,7 @@
             "steppedLine": false,
             "targets": [
               {
-                "alias": "$tag_container_name",
+                "alias": "[[tag_com.docker.swarm.service.name]]",
                 "dsType": "influxdb",
                 "fields": [
                   {
@@ -363,7 +439,7 @@
                 "hide": false,
                 "measurement": "docker_container_cpu",
                 "policy": "default",
-                "query": "SELECT non_negative_derivative(last(\"io_service_bytes_recursive_total\"))/1000 FROM \"docker_container_blkio\" WHERE  \"container_name\" =~ /$ContainerName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"datacenter\", \"host\", \"container_name\"",
+                "query": "SELECT non_negative_derivative(last(\"io_service_bytes_recursive_total\"))/1000 FROM \"docker_container_blkio\" WHERE  \"com.docker.swarm.service.name\" =~ /$ServiceName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"datacenter\", \"host\", \"com.docker.swarm.service.name\"",
                 "rawQuery": true,
                 "refId": "A",
                 "resultFormat": "time_series",
@@ -382,6 +458,44 @@
                   ]
                 ],
                 "tags": []
+              },
+              {
+                "policy": "default",
+                "dsType": "influxdb",
+                "resultFormat": "time_series",
+                "tags": [],
+                "groupBy": [
+                  {
+                    "type": "time",
+                    "params": [
+                      "$interval"
+                    ]
+                  },
+                  {
+                    "type": "fill",
+                    "params": [
+                      "null"
+                    ]
+                  }
+                ],
+                "select": [
+                  [
+                    {
+                      "type": "field",
+                      "params": [
+                        "value"
+                      ]
+                    },
+                    {
+                      "type": "mean",
+                      "params": []
+                    }
+                  ]
+                ],
+                "refId": "B",
+                "query": "SELECT non_negative_derivative(last(\"io_service_bytes_recursive_total\"))/1000 FROM \"docker_container_blkio\" WHERE \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"datacenter\", \"engine_host\"",
+                "rawQuery": true,
+                "alias": "[[tag_engine_host]]"
               }
             ],
             "timeFrom": null,
@@ -390,6 +504,7 @@
             "tooltip": {
               "msResolution": false,
               "shared": true,
+              "sort": 0,
               "value_type": "cumulative"
             },
             "type": "graph",
@@ -451,7 +566,7 @@
             "steppedLine": false,
             "targets": [
               {
-                "alias": "$tag_container_name:rx_bytes",
+                "alias": "[[tag_com.docker.swarm.service.name]]:rx_bytes",
                 "dsType": "influxdb",
                 "fields": [
                   {
@@ -492,7 +607,7 @@
                 "hide": false,
                 "measurement": "docker_container_cpu",
                 "policy": "default",
-                "query": "SELECT non_negative_derivative(last(\"mean_rx_bytes\"))/1000 FROM $Retention.\"downsampled_docker_container_net\" WHERE \"container_name\" =~ /$ContainerName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"datacenter\", \"host\", \"container_name\"",
+                "query": "SELECT non_negative_derivative(last(\"mean_rx_bytes\"))/1000 FROM $Retention.\"downsampled_docker_container_net\" WHERE \"com.docker.swarm.service.name\" =~ /$ServiceName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and $timeFilter GROUP BY time($interval), \"datacenter\", \"engine_host\", \"com.docker.swarm.service.name\"",
                 "rawQuery": true,
                 "refId": "A",
                 "resultFormat": "time_series",
@@ -513,7 +628,7 @@
                 "tags": []
               },
               {
-                "alias": "$tag_container_name:tx_bytes",
+                "alias": "[[tag_com.docker.swarm.service.name]]:tx_bytes",
                 "dsType": "influxdb",
                 "groupBy": [
                   {
@@ -530,7 +645,7 @@
                   }
                 ],
                 "policy": "default",
-                "query": "SELECT non_negative_derivative(last(\"mean_tx_bytes\"))/1000 FROM $Retention.\"downsampled_docker_container_net\" WHERE \"container_name\" =~ /$ContainerName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and  $timeFilter GROUP BY time($interval), \"datacenter\", \"host\", \"container_name\"",
+                "query": "SELECT non_negative_derivative(last(\"mean_tx_bytes\"))/1000 FROM $Retention.\"downsampled_docker_container_net\" WHERE \"com.docker.swarm.service.name\" =~ /$ServiceName/ and \"datacenter\" =~ /$DataCenter/  and \"host\" =~ /$HostName/ and  $timeFilter GROUP BY time($interval), \"datacenter\", \"engine_host\", \"com.docker.swarm.service.name\"",
                 "rawQuery": true,
                 "refId": "B",
                 "resultFormat": "time_series",
@@ -557,6 +672,7 @@
             "tooltip": {
               "msResolution": false,
               "shared": true,
+              "sort": 0,
               "value_type": "cumulative"
             },
             "type": "graph",
@@ -624,72 +740,106 @@
       "list": [
         {
           "current": {
-            "tags": [],
             "text": "All",
             "value": [
               "$__all"
-            ]
+            ],
+            "tags": []
           },
           "datasource": null,
           "hide": 0,
           "includeAll": true,
-          "label": "ContainerName",
+          "label": "ServiceName",
           "multi": true,
-          "name": "ContainerName",
+          "name": "ServiceName",
           "options": [
             {
+              "selected": true,
               "text": "All",
-              "value": "$__all",
-              "selected": true
+              "value": "$__all"
             },
             {
-              "text": "chronograf",
-              "value": "chronograf",
-              "selected": false
+              "selected": false,
+              "text": "amp-agent",
+              "value": "amp-agent"
             },
             {
-              "text": "consul",
-              "value": "consul",
-              "selected": false
+              "selected": false,
+              "text": "amp-log-worker",
+              "value": "amp-log-worker"
             },
             {
-              "text": "grafana_1",
-              "value": "grafana_1",
-              "selected": false
+              "selected": false,
+              "text": "amp-ui",
+              "value": "amp-ui"
             },
             {
+              "selected": false,
+              "text": "amplifier",
+              "value": "amplifier"
+            },
+            {
+              "selected": false,
+              "text": "elasticsearch",
+              "value": "elasticsearch"
+            },
+            {
+              "selected": false,
+              "text": "etcd",
+              "value": "etcd"
+            },
+            {
+              "selected": false,
+              "text": "grafana",
+              "value": "grafana"
+            },
+            {
+              "selected": false,
+              "text": "haproxy",
+              "value": "haproxy"
+            },
+            {
+              "selected": false,
               "text": "influxdb",
-              "value": "influxdb",
-              "selected": false
+              "value": "influxdb"
             },
             {
+              "selected": false,
               "text": "kapacitor",
-              "value": "kapacitor",
-              "selected": false
+              "value": "kapacitor"
             },
             {
-              "text": "registrator",
-              "value": "registrator",
-              "selected": false
+              "selected": false,
+              "text": "nats",
+              "value": "nats"
             },
             {
-              "text": "telegraf",
-              "value": "telegraf",
-              "selected": false
+              "selected": false,
+              "text": "registry",
+              "value": "registry"
+            },
+            {
+              "selected": false,
+              "text": "telegraf-agent",
+              "value": "telegraf-agent"
+            },
+            {
+              "selected": false,
+              "text": "telegraf-haproxy",
+              "value": "telegraf-haproxy"
             }
           ],
-          "query": "SHOW TAG VALUES FROM \"docker_container_mem\" WITH KEY = \"container_name\"",
-          "refresh": 1,
-          "regex": "/([^/]*$)/",
+          "query": "SHOW TAG VALUES FROM \"docker_container_mem\" WITH KEY = \"com.docker.swarm.service.name\"",
+          "refresh": 0,
+          "regex": "",
           "type": "query"
         },
         {
           "current": {
-            "tags": [],
-            "text": "All",
             "value": [
               "$__all"
-            ]
+            ],
+            "text": "All"
           },
           "datasource": null,
           "hide": 0,
@@ -704,8 +854,8 @@
               "selected": true
             },
             {
-              "text": "dev",
-              "value": "dev",
+              "text": "dc1",
+              "value": "dc1",
               "selected": false
             }
           ],
@@ -716,11 +866,10 @@
         },
         {
           "current": {
-            "tags": [],
-            "text": "All",
             "value": [
               "$__all"
-            ]
+            ],
+            "text": "All"
           },
           "datasource": null,
           "hide": 0,
@@ -735,8 +884,8 @@
               "selected": true
             },
             {
-              "text": "069618bafb82",
-              "value": "069618bafb82",
+              "text": "f0181ec14413",
+              "value": "f0181ec14413",
               "selected": false
             }
           ],
@@ -780,7 +929,8 @@
       "list": []
     },
     "schemaVersion": 12,
-    "version": 3,
-    "links": []
+    "version": 2,
+    "links": [],
+    "gnetId": null
   }
 }
