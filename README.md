@@ -16,6 +16,5 @@ Same as [base image](https://github.com/appcelerator/docker-grafana)
 
 ## Tags
 
-- 1.0.0, latest
-
-
+- ```1.0.1``` (Grafana 3.1.1)
+- ```1.1.0```, ```latest``` (Grafana 4.0)
