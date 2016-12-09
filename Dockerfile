@@ -1,4 +1,4 @@
-FROM appcelerator/grafana:grafana-4.0.0
+FROM appcelerator/grafana:grafana-4.0.2
 ENV INFLUXDB_HOST	influxdb
 ENV INFLUXDB_PASS	changeme
 ENV FORCE_HOSTNAME	auto
