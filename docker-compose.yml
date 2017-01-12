@@ -1,7 +1,7 @@
 version: "2"
 services:
   telegraf:
-    image: appcelerator/telegraf:telegraf-1.0.2
+    image: appcelerator/telegraf:telegraf-1.1.2
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/run/utmp:/var/run/utmp
@@ -11,7 +11,7 @@ services:
       INPUT_DOCKER_ENABLED: "true"
 
   influxdb:
-    image: appcelerator/influxdb-amp:1.0.0
+    image: appcelerator/influxdb-amp:1.1.2
     ports:
       - "8086:8086"
       - "8083:8083"
